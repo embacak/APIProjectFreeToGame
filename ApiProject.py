@@ -1,14 +1,16 @@
+
 import io
 import tkinter as tk
 from PIL import Image, ImageTk
 import requests
 
-# --- API Request ---
+# Spieledaten von der API laden und als JSON speichern
 URL = "https://www.freetogame.com/api/games"
 data = requests.get(URL)
 data = data.json()
 
 
+# Liste beim Tippen nach dem Suchbegriff filtern
 def vorschlaege_aktualisieren(event=None):
   suche = eingabe.get().strip().lower()
   vorschlag_liste.delete(0, tk.END)
@@ -18,6 +20,7 @@ def vorschlaege_aktualisieren(event=None):
       vorschlag_liste.insert(tk.END, spiel["title"])
 
 
+# Infos und Cover-Bild für das ausgewählte Spiel laden
 def spiel_auswaehlen(event=None):
   auswahl = vorschlag_liste.curselection()
   if auswahl:
@@ -29,6 +32,7 @@ def spiel_auswaehlen(event=None):
 
   for spiel in data:
     if gesuchter_titel.lower() in spiel["title"].lower():
+      # Textfelder mit den Spieledaten füllen
       titel_var.set(spiel["title"])
       meta_var.set(
           f"Genre: {spiel['genre']}   |   Plattform: {spiel['platform']}\n"
@@ -37,7 +41,7 @@ def spiel_auswaehlen(event=None):
       )
       beschreibung_var.set(spiel["short_description"])
 
-      # Cover-Bild laden
+      # Cover-Bild herunterladen und anzeigen
       bild_daten = requests.get(spiel["thumbnail"]).content
       pil_bild = Image.open(io.BytesIO(bild_daten))
       pil_bild = pil_bild.resize((540, 305), Image.Resampling.LANCZOS)
@@ -48,13 +52,13 @@ def spiel_auswaehlen(event=None):
       return
 
 
-# --- Hauptfenster (Fullscreen / Maximiert) ---
+# Hauptfenster erstellen
 fenster = tk.Tk()
 fenster.title("FreeToGame Explorer")
 fenster.state("zoomed")
 fenster.configure(bg="#1e1e2e")
 
-# --- LINKE SEITE: Suche & Vorschläge ---
+# Linke Seite: Suchfeld, Button und Vorschlagsliste
 links_frame = tk.Frame(fenster, bg="#252538", width=420, padx=25, pady=25)
 links_frame.pack(side="left", fill="y")
 links_frame.pack_propagate(False)
@@ -108,7 +112,6 @@ tk.Label(
     fg="#a6adc8",
 ).pack(anchor="w", pady=(0, 5))
 
-# Listbox mit Scrollbar
 liste_frame = tk.Frame(links_frame, bg="#313244")
 liste_frame.pack(fill="both", expand=True)
 
@@ -130,7 +133,7 @@ vorschlag_liste.pack(side="left", fill="both", expand=True, padx=5, pady=5)
 scrollbar.config(command=vorschlag_liste.yview)
 vorschlag_liste.bind("<<ListboxSelect>>", spiel_auswaehlen)
 
-# --- RECHTE SEITE: Bild & Informationen ---
+# Rechte Seite: Titel, Infos, Cover-Bild und Beschreibung
 rechts_frame = tk.Frame(fenster, bg="#1e1e2e", padx=50, pady=40)
 rechts_frame.pack(side="right", fill="both", expand=True)
 
@@ -178,6 +181,6 @@ tk.Label(
     anchor="w",
 ).pack(fill="x")
 
+# Liste beim Programmstart füllen und Fenster starten
 vorschlaege_aktualisieren()
-
 fenster.mainloop()
